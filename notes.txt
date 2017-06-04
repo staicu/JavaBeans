@@ -1,0 +1,71 @@
+@Override
+    @Lock(WRITE)
+
+   @Override
+    @Lock(READ)
+--------------------------------------------------------------------------
+SERVLET
+
+//in the servlet
+  @EJB
+    CounterEJBRemote counterService;
+
+ int count = counterService.getTotalVisitCount();
+            Date date = timeService.getCurrentDateTime();
+            	
+            out.printf("<p>Total vists %d and current time %s</p>\n", count, date);
+
+-----------------------------------------------------------------------------
+JAVA BEAN
+
+
+@Singleton
+@ConcurrencyManagement(CONTAINER)
+@AccessTimeout(value=120000)
+public class CounterEJB implements CounterEJBRemote {
+
+    private int counter;
+    
+    @Override
+    @Lock(WRITE)
+    public void registerVisit() {
+        System.out.println("registerVisit()");
+        counter++;
+    }
+
+    @Override
+    @Lock(READ)
+    public int getTotalVisitCount() {
+        System.out.println("getTotalVisitCount()");
+        return counter;
+    }
+
+}
+--------------------------
+
+@Stateless
+public class TimeEJB implements TimeEJBRemote {
+
+    @Override
+    public Date getCurrentDateTime() {
+        System.out.println("getCurrentDateTime()");
+        return new Date();
+    }
+
+}
+
+
+---------------------------------------
+ADD LIBRARY TO THE GUI PROJECT
+GUI
+
+ private void btRefreshActionPerformed(java.awt.event.ActionEvent evt) {                                          
+        counterService.registerVisit();
+        int count = counterService.getTotalVisitCount();
+        Date date = timeService.getCurrentDateTime();        
+        lblResult.setText(String.format("Visted %d, current time %s", count, date));        
+    }                                         
+---------
+
+
+
